@@ -42,6 +42,9 @@ app.get("/api/favorites/:userId", async (req,res) => {
     try {
         const {userId} = req.params;
         const userFovorites = await db.select().from(favoritesTable).where(eq(favoritesTable.userId,userId));
+        // if (userFovorites.length === 0) {
+        //     return res.status(404).json({error: "No favorites found"});
+        // }
         res.status(200).json(userFovorites);
     } catch (error) {
         console.log("Error fetching favorite", error);
@@ -53,6 +56,12 @@ app.get("/api/favorites/:userId", async (req,res) => {
 app.delete("/api/favorites/:userId/:recipeId", async (req,res) => {
     try {
         const {userId,recipeId} = req.params;
+        const userFovoritesCheck = await db.select().from(favoritesTable).where(
+            and(eq(favoritesTable.userId,userId),eq(favoritesTable.recipeId,parseInt(recipeId)))
+        );
+        if (!userFovoritesCheck.length) {
+            return res.status(404).json({error: "No favorites found"});
+        }
         await db.delete(favoritesTable).where(
             and(eq(favoritesTable.userId,userId),eq(favoritesTable.recipeId,parseInt(recipeId)))
         );
